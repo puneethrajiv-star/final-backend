@@ -18,4 +18,4 @@ COPY --from=build /app/target/ai-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 10000
 
-ENTRYPOINT ["sh", "-c", "exec java -Dserver.port=${PORT:-10000} -jar /app/app.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx384m", "-Dserver.port=${PORT:10000}", "-jar", "app.jar"]
