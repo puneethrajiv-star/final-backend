@@ -25,7 +25,7 @@ public class Securityconfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
-            @Value("${app.cors.allowed-origin-patterns:http://localhost:*,http://127.0.0.1:*}") String[] allowedOriginPatterns) {
+            @Value("${app.cors.allowed-origin-patterns:http://localhost:*,http://127.0.0.1:*,https://frontend-t290.onrender.com}") String[] allowedOriginPatterns) {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(allowedOriginPatterns));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

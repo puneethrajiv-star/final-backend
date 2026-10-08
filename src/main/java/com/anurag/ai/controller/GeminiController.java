@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin(origins = "https://frontend-t290.onrender.com")
 @RequestMapping("/api/gemini")
 @RequiredArgsConstructor
 public class GeminiController {

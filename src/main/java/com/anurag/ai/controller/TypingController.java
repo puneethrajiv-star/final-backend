@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "https://frontend-t290.onrender.com")
 @RequestMapping("/api/typing")
 @RequiredArgsConstructor
 public class TypingController {

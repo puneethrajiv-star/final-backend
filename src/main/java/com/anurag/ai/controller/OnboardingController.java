@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@CrossOrigin(origins = "https://frontend-t290.onrender.com")
 @RequestMapping("/api/onboarding")
 @RequiredArgsConstructor
 public class OnboardingController {
