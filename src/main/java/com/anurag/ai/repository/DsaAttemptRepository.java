@@ -18,6 +18,9 @@ public interface DsaAttemptRepository extends JpaRepository<DsaAttempt, Long> {
     @Query("SELECT DISTINCT CAST(a.attemptedAt AS LocalDate) FROM DsaAttempt a WHERE a.student.id = :studentId")
     List<LocalDate> findDistinctActivityDates(Long studentId);
 
+    @Query("SELECT DISTINCT a.problem.id FROM DsaAttempt a WHERE a.student.id = :studentId AND a.passed = true")
+    List<Long> findSolvedProblemIds(Long studentId);
+
     interface DsaLeaderboardRow {
         Long getStudentId();
         String getStudentName();

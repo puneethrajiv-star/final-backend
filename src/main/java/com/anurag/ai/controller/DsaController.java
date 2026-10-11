@@ -24,13 +24,18 @@ public class DsaController {
 
     @GetMapping("/problems")
     public ResponseEntity<List<DsaProblemResponse>> getProblems(
-            @RequestParam(required = false) Difficulty difficulty) {
-        return ResponseEntity.ok(dsaService.getProblems(difficulty));
+            @RequestParam(required = false) Difficulty difficulty,
+            @AuthenticationPrincipal User student) {
+        Long studentId = student != null ? student.getId() : null;
+        return ResponseEntity.ok(dsaService.getProblems(studentId, difficulty));
     }
 
     @GetMapping("/problems/{id}")
-    public ResponseEntity<DsaProblemResponse> getProblemById(@PathVariable Long id) {
-        return ResponseEntity.ok(dsaService.getProblemById(id));
+    public ResponseEntity<DsaProblemResponse> getProblemById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User student) {
+        Long studentId = student != null ? student.getId() : null;
+        return ResponseEntity.ok(dsaService.getProblemById(studentId, id));
     }
 
     @PostMapping("/attempts")

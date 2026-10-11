@@ -15,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -25,20 +27,29 @@ public class DsaService {
     private final DsaAttemptRepository dsaAttemptRepository;
     private final UserRepository userRepository;
 
-    public List<DsaProblemResponse> getProblems(Difficulty difficulty) {
+    public List<DsaProblemResponse> getProblems(Long studentId, Difficulty difficulty) {
         List<DsaProblem> problems;
         if (difficulty != null) {
             problems = dsaProblemRepository.findByDifficulty(difficulty);
         } else {
             problems = dsaProblemRepository.findAll();
         }
-        return problems.stream().map(DsaProblemResponse::from).toList();
+
+        Set<Long> solvedIds = studentId != null
+                ? new HashSet<>(dsaAttemptRepository.findSolvedProblemIds(studentId))
+                : Set.of();
+
+        return problems.stream()
+                .map(p -> DsaProblemResponse.from(p, solvedIds.contains(p.getId())))
+                .toList();
     }
 
-    public DsaProblemResponse getProblemById(Long id) {
+    public DsaProblemResponse getProblemById(Long studentId, Long id) {
         DsaProblem problem = dsaProblemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("DSA problem not found with id: " + id));
-        return DsaProblemResponse.from(problem);
+        boolean solved = studentId != null
+                && dsaAttemptRepository.findSolvedProblemIds(studentId).contains(id);
+        return DsaProblemResponse.from(problem, solved);
     }
 
     public DsaAttemptResponse submitAttempt(Long studentId, DsaAttemptRequest request) {
