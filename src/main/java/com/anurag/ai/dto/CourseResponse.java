@@ -10,6 +10,8 @@ public class CourseResponse {
     String description;
     String createdByName;
     String visibility;
+    String level;
+    Integer orderIndex;
 
     public static CourseResponse from(Course course) {
         return new CourseResponse(
@@ -17,7 +19,9 @@ public class CourseResponse {
             course.getTitle(),
             course.getDescription(),
             course.getCreatedBy() != null ? course.getCreatedBy().getName() : null,
-            course.getVisibility() != null ? course.getVisibility().name() : null
+            course.getVisibility() != null ? course.getVisibility().name() : null,
+            course.getLevel() != null ? course.getLevel().name() : null,
+            course.getOrderIndex()
         );
     }
 }

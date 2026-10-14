@@ -30,7 +30,7 @@ public class CourseService {
     private final UserRepository userRepository;
 
     public List<CourseResponse> getAllCourses() {
-        return courseRepository.findAll().stream()
+        return courseRepository.findAllByOrderByOrderIndexAscIdAsc().stream()
                 .map(CourseResponse::from)
                 .toList();
     }
@@ -47,7 +47,7 @@ public class CourseService {
         if (!enrolled) {
             throw new IllegalArgumentException("Student is not enrolled in this course");
         }
-        return videoRepository.findByCourse_Id(courseId).stream()
+        return videoRepository.findByCourse_IdOrderByOrderIndexAscIdAsc(courseId).stream()
                 .map(VideoResponse::from)
                 .toList();
     }

@@ -1,5 +1,6 @@
 package com.anurag.ai.entity;
 
+import com.anurag.ai.enums.CourseLevel;
 import com.anurag.ai.enums.Visibility;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,4 +24,10 @@ public class Course {
 
     @Enumerated(EnumType.STRING)
     private Visibility visibility;
+
+    @Enumerated(EnumType.STRING)
+    private CourseLevel level;
+
+    // Lower number unlocks first. Lets placement test / prerequisites order courses.
+    private Integer orderIndex;
 }

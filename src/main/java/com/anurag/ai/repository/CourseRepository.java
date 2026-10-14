@@ -8,4 +8,5 @@ import java.util.List;
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByVisibility(Visibility visibility);
     List<Course> findByCreatedById(Long userId);
+    List<Course> findAllByOrderByOrderIndexAscIdAsc();
 }

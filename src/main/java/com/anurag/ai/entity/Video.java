@@ -20,6 +20,12 @@ public class Video {
 
     private String url;
 
+    // Chapter grouping shown in the syllabus sidebar, e.g. "Loops", "Functions".
+    private String module;
+
+    // Stable playlist order; falls back to id order when null.
+    private Integer orderIndex;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
