@@ -23,7 +23,7 @@ public class GeminiService {
     }
 
     public String ask(String youtubeUrl, String question) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + apiKey;
 
         String prompt = """
             You are a concise teaching assistant helping a student with this video.
@@ -51,7 +51,7 @@ public class GeminiService {
     }
 
     public String generateQuiz(String youtubeUrl) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + apiKey;
 
         String prompt = """
             You are an expert computer science teacher. Based on this video, generate exactly 5 multiple-choice questions testing student comprehension.
