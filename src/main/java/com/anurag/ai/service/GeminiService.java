@@ -22,9 +22,10 @@ public class GeminiService {
         this.restTemplate = new RestTemplate(factory);
     }
 
-    public String ask(String youtubeUrl, String question) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + apiKey;
+    private static final String INTERACTIONS_URL = "https://generativelanguage.googleapis.com/v1beta/interactions";
+    private static final String MODEL = "gemini-3.8-flash";
 
+    public String ask(String youtubeUrl, String question) {
         String prompt = """
             You are a concise teaching assistant helping a student with this video.
             Answer their question using only the video's content. Keep your answer
@@ -35,24 +36,10 @@ public class GeminiService {
             %s
             """.formatted(question);
 
-        Map<String, Object> body = Map.of(
-            "contents", new Object[] {
-                Map.of("parts", new Object[] {
-                    Map.of("text", prompt),
-                    Map.of("file_data", Map.of("mime_type", "video/mp4", "file_uri", youtubeUrl))
-                })
-            }
-        );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        return executeWithRetry(url, new HttpEntity<>(body, headers));
+        return callInteractions(prompt, youtubeUrl);
     }
 
     public String generateQuiz(String youtubeUrl) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + apiKey;
-
         String prompt = """
             You are an expert computer science teacher. Based on this video, generate exactly 5 multiple-choice questions testing student comprehension.
             Respond strictly with a valid JSON array of 5 objects and no extra explanation, markdown fences, or text.
@@ -70,19 +57,25 @@ public class GeminiService {
             Rule: correctOption must strictly be one of: A, B, C, or D.
             """;
 
+        return callInteractions(prompt, youtubeUrl);
+    }
+
+    // YouTube video input is only supported through the Interactions API
+    // (generateContent's file_data.file_uri does not accept YouTube URLs).
+    private String callInteractions(String promptText, String youtubeUrl) {
         Map<String, Object> body = Map.of(
-            "contents", new Object[] {
-                Map.of("parts", new Object[] {
-                    Map.of("text", prompt),
-                    Map.of("file_data", Map.of("mime_type", "video/mp4", "file_uri", youtubeUrl))
-                })
+            "model", MODEL,
+            "input", new Object[] {
+                Map.of("type", "text", "text", promptText),
+                Map.of("type", "video", "uri", youtubeUrl)
             }
         );
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-goog-api-key", apiKey);
 
-        return executeWithRetry(url, new HttpEntity<>(body, headers));
+        return executeWithRetry(INTERACTIONS_URL, new HttpEntity<>(body, headers));
     }
 
     @SuppressWarnings("unchecked")
@@ -94,13 +87,21 @@ public class GeminiService {
                 if (response.getBody() == null) {
                     throw new IllegalStateException("Empty body from Gemini API");
                 }
-                List<Map> candidates = (List<Map>) response.getBody().get("candidates");
-                if (candidates == null || candidates.isEmpty()) {
-                    throw new IllegalStateException("Gemini returned no candidates");
+                List<Map> steps = (List<Map>) response.getBody().get("steps");
+                if (steps == null) {
+                    throw new IllegalStateException("Gemini response had no steps: " + response.getBody());
                 }
-                Map content = (Map) candidates.get(0).get("content");
-                List<Map> parts = (List<Map>) content.get("parts");
-                return (String) parts.get(0).get("text");
+                for (Map step : steps) {
+                    if (!"model_output".equals(step.get("type"))) continue;
+                    List<Map> content = (List<Map>) step.get("content");
+                    if (content == null) continue;
+                    for (Map part : content) {
+                        if ("text".equals(part.get("type")) && part.get("text") != null) {
+                            return (String) part.get("text");
+                        }
+                    }
+                }
+                throw new IllegalStateException("Gemini returned no text output: " + response.getBody());
             } catch (org.springframework.web.client.HttpStatusCodeException ex) {
                 if (ex.getStatusCode().is5xxServerError() && attempt < maxAttempts) {
                     try {
