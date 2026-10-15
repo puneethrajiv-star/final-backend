@@ -23,7 +23,9 @@ public class GeminiService {
     }
 
     private static final String INTERACTIONS_URL = "https://generativelanguage.googleapis.com/v1beta/interactions";
-    private static final String MODEL = "gemini-3.8-flash";
+
+    @Value("${gemini.model:gemini-3.8-flash}")
+    private String model;
 
     public String ask(String youtubeUrl, String question) {
         String prompt = """
@@ -64,7 +66,7 @@ public class GeminiService {
     // (generateContent's file_data.file_uri does not accept YouTube URLs).
     private String callInteractions(String promptText, String youtubeUrl) {
         Map<String, Object> body = Map.of(
-            "model", MODEL,
+            "model", model,
             "input", new Object[] {
                 Map.of("type", "text", "text", promptText),
                 Map.of("type", "video", "uri", youtubeUrl)
@@ -80,7 +82,8 @@ public class GeminiService {
 
     @SuppressWarnings("unchecked")
     private String executeWithRetry(String url, HttpEntity<Map<String, Object>> entity) {
-        int maxAttempts = 3;
+        int maxAttempts = 4;
+        org.springframework.web.client.HttpStatusCodeException lastError = null;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
@@ -103,14 +106,18 @@ public class GeminiService {
                 }
                 throw new IllegalStateException("Gemini returned no text output: " + response.getBody());
             } catch (org.springframework.web.client.HttpStatusCodeException ex) {
+                lastError = ex;
                 if (ex.getStatusCode().is5xxServerError() && attempt < maxAttempts) {
                     try {
-                        Thread.sleep(2000L * attempt);
+                        Thread.sleep(3000L * attempt);
                     } catch (InterruptedException ignored) {}
                     continue;
                 }
                 throw ex;
             }
+        }
+        if (lastError != null && lastError.getStatusCode().is5xxServerError()) {
+            throw new IllegalStateException("Gemini is overloaded right now. Please try again in a minute.");
         }
         throw new IllegalStateException("Failed to communicate with Gemini API");
     }
